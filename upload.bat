@@ -3,18 +3,18 @@
 :: 设置你的 GitHub 仓库地址
 set REPO_URL=https://github.com/3030606794/LittleBigMouse_zh-CN.git
 
-:: 设置分支名称 (通常是 main)
+:: 设置分支名称
 set BRANCH=main
 
-:: 设置代理端口 (Clash Verge 通常是 7890 或 7897，请根据实际情况修改)
-set PROXY_PORT=7890
+:: Clash Verge 默认端口通常是 7897。
+:: 如果这也不行，请点开 Clash Verge 左侧的“设置”，看一眼“混合端口”或“HTTP端口”是多少。
+set PROXY_PORT=7897
 :: =========================================
 
 echo [Step 1] Setting up Proxy to 127.0.0.1:%PROXY_PORT%...
-:: 强制为当前仓库设置代理，解决连接问题
+:: 设置 Git 代理
 git config http.proxy http://127.0.0.1:%PROXY_PORT%
 git config https.proxy http://127.0.0.1:%PROXY_PORT%
-:: 关闭 SSL 验证 (防止代理证书报错)
 git config http.sslVerify false
 
 echo.
@@ -39,14 +39,18 @@ set CURRENT_TIME=%date% %time%
 git commit -m "Update: %CURRENT_TIME%"
 
 echo.
-echo [Step 5] Force Pushing to GitHub (using Proxy)...
-:: 注意：这里加了 -f 参数，强制覆盖远程仓库，解决 [rejected] 错误
+echo [Step 5] Force Pushing to GitHub...
+:: 使用 -f 强制推送，解决冲突
 git push -f -u origin %BRANCH%
 
 if %errorlevel% neq 0 (
     echo.
-    echo [ERROR] Push Failed!
-    echo Please check if your Clash port is indeed %PROXY_PORT%.
+    echo =================ERROR=================
+    echo 推送失败！无法连接到端口 %PROXY_PORT%。
+    echo 请打开 Clash Verge 左侧的【设置】。
+    echo 找到【HTTP 端口】或者【混合端口】。
+    echo 如果不是 7897，请右键编辑此脚本，修改 'set PROXY_PORT=...' 那一行。
+    echo =======================================
     pause
     exit
 )
