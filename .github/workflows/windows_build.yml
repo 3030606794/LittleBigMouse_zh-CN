@@ -25,9 +25,9 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup -y
       - name: Build installer
-        run: iscc LittleBigMouse.Setup\\LittleBigMouse.iss
+        run: iscc LittleBigMouse.Setup\LittleBigMouse.iss
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
           name: LittleBigMouse-Installer
-          path: LittleBigMouse.Setup\\*.exe
+          path: LittleBigMouse.Setup\*.exe
