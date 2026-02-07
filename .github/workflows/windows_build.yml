@@ -1,61 +1,33 @@
-name: Windows Build (LittleBigMouse)
+name: Windows Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
     steps:
-      - name: Checkout (with submodules)
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           submodules: recursive
-
-      - name: Setup .NET SDKs (7 + 8)
-        uses: actions/setup-dotnet@v4
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: |
-            8.0.x
-            7.0.x
-
-      - name: Show .NET info
-        shell: pwsh
-        run: |
-          $env:DOTNET_ROOT\dotnet --version
-          $env:DOTNET_ROOT\dotnet --info
-
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
+          dotnet-version: 8.0.x
+      - uses: microsoft/setup-msbuild@v2
+      - uses: NuGet/setup-nuget@v2
       - name: Restore
-        shell: pwsh
-        run: |
-          $env:DOTNET_ROOT\dotnet restore .\LittleBigMouse.sln
-
-      - name: Build (Release x64)
-        shell: pwsh
-        run: |
-          msbuild .\LittleBigMouse.sln /m /p:Configuration=Release /p:Platform=x64
-
+        run: nuget restore LittleBigMouse.sln
+      - name: Build Release x64
+        run: msbuild LittleBigMouse.sln /m /p:Configuration=Release /p:Platform=x64
       - name: Install Inno Setup
-        shell: pwsh
-        run: |
-          choco install innosetup -y
-
-      - name: Build installer (Inno Setup)
-        shell: pwsh
-        run: |
-          $iscc = (Get-Command iscc.exe -ErrorAction SilentlyContinue).Source
-          if (-not $iscc) { $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe' }
-          if (-not (Test-Path $iscc)) { throw "ISCC.exe not found after installing Inno Setup." }
-          & $iscc .\LittleBigMouse.Setup\LittleBigMouse.iss
-
+        run: choco install innosetup -y
+      - name: Build installer
+        run: iscc LittleBigMouse.Setup\\LittleBigMouse.iss
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
           name: LittleBigMouse-Installer
-          path: .\LittleBigMouse.Setup\LittleBigMouse_*.exe
+          path: LittleBigMouse.Setup\\*.exe
